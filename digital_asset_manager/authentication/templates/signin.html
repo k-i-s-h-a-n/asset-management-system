@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Sign In{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h3 class="text-center mb-4">Sign In</h3>
+                <form id="signinForm">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" placeholder="Enter your username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="button" class="btn btn-success" onclick="signin()">Sign In</button>
+                    </div>
+                </form>
+                <p class="text-center mt-3">Don't have an account? <a href="/signup/">Sign Up</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function signin() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        fetch('/api/auth/signin/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.token) {
+                localStorage.setItem('token', data.token); // Store the JWT
+                alert('Sign-in successful!');
+                window.location.href = '/dashboard/';
+            } else {
+                alert(`Error: ${data.error || 'Sign-in failed'}`);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Manage Categories{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-6">
+        <h3>Categories</h3>
+        <ul class="list-group" id="categoriesList">
+            <!-- Categories will be dynamically loaded here -->
+        </ul>
+    </div>
+    <div class="col-md-6">
+        <h3>Add New Category</h3>
+        <form id="addCategoryForm">
+            <div class="mb-3">
+                <label for="categoryName" class="form-label">Category Name</label>
+                <input type="text" class="form-control" id="categoryName" required>
+            </div>
+            <div class="d-grid">
+                <button type="button" class="btn btn-success" onclick="addCategory()">Add Category</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function loadCategories() {
+        fetch('/api/auth/categories/')
+        .then(response => response.json())
+        .then(data => {
+            const categoriesList = document.getElementById('categoriesList');
+            categoriesList.innerHTML = '';
+            data.forEach(category => {
+                const li = document.createElement('li');
+                li.textContent = category.name;
+                li.classList.add('list-group-item');
+                categoriesList.appendChild(li);
+            });
+        });
+    }
+
+    function addCategory() {
+        const token = localStorage.getItem('token'); // Retrieve the token from localStorage
+        const name = document.getElementById('categoryName').value;
+    
+        fetch('/api/categories/', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`, // Include the token here
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name }) // Payload for the category
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Category added successfully!');
+                loadCategories();
+                document.getElementById('categoryName').value = '';
+            } else {
+                alert('Error adding category: ' + response.statusText);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+    
+
+    document.addEventListener('DOMContentLoaded', loadCategories);
+</script>
+{% endblock %}

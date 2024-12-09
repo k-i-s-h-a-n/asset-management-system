@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}Upload Asset{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h3 class="text-center mb-4">Upload New Asset</h3>
+                <form id="uploadAssetForm" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="title" placeholder="Enter asset title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Category</label>
+                        <select class="form-select" id="category" required>
+                            <!-- Categories will be dynamically loaded here -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" rows="3" placeholder="Enter a brief description"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="file" class="form-label">File</label>
+                        <input type="file" class="form-control" id="file" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="button" class="btn btn-success" onclick="uploadAsset()">Upload</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function loadCategories() {
+        const token = localStorage.getItem('token');
+        fetch('/api/categories/', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const categorySelect = document.getElementById('category');
+            categorySelect.innerHTML = '';
+            data.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                categorySelect.appendChild(option);
+            });
+        });
+    }
+
+    function uploadAsset() {
+        const token = localStorage.getItem('token');
+        const formData = new FormData();
+        formData.append('title', document.getElementById('title').value);
+        formData.append('category', document.getElementById('category').value);
+        formData.append('description', document.getElementById('description').value);
+        formData.append('file', document.getElementById('file').files[0]);
+
+        fetch('/api/assets/', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Asset uploaded successfully!');
+                window.location.href = '/dashboard/';
+            } else {
+                alert('Error uploading asset.');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Load categories on page load
+    document.addEventListener('DOMContentLoaded', loadCategories);
+</script>
+{% endblock %}

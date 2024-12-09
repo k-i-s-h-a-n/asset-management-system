@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h3>My Assets</h3>
+        <a href="/assets/upload/" class="btn btn-primary mb-3">Add New Asset</a>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>File</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="assetsTable">
+                <!-- Assets will be dynamically loaded here -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function fetchAssets() {
+        const token = localStorage.getItem('token');
+        fetch('/api/assets/', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            const table = document.getElementById('assetsTable');
+            table.innerHTML = '';
+            data.forEach((asset, index) => {
+                const row = `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${asset.title}</td>
+                        <td>${asset.category_name}</td>
+                        <td>${asset.description}</td>
+                        <td><a href="${asset.file}" target="_blank">View</a></td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="editAsset(${asset.id})">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteAsset(${asset.id})">Delete</button>
+                        </td>
+                    </tr>`;
+                table.innerHTML += row;
+            });
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    fetchAssets();
+</script>
+{% endblock %}

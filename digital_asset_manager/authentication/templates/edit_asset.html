@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Edit Asset{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h3 class="text-center mb-4">Edit Asset</h3>
+                <form id="editAssetForm">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Category</label>
+                        <select class="form-select" id="category" required>
+                            <!-- Categories will be dynamically loaded here -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" rows="3"></textarea>
+                    </div>
+                    <div class="d-grid">
+                        <button type="button" class="btn btn-primary" onclick="updateAsset()">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const assetId = new URLSearchParams(window.location.search).get('id');
+
+    function loadAsset() {
+        const token = localStorage.getItem('token');
+        fetch(`/api/assets/${assetId}/`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('title').value = data.title;
+            document.getElementById('description').value = data.description;
+
+            // Populate categories and set the selected one
+            loadCategories(data.category);
+        });
+    }
+
+    function loadCategories(selectedCategoryId) {
+        const token = localStorage.getItem('token');
+        fetch('/api/categories/', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const categorySelect = document.getElementById('category');
+            categorySelect.innerHTML = '';
+            data.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                if (category.id === selectedCategoryId) {
+                    option.selected = true;
+                }
+                categorySelect.appendChild(option);
+            });
+        });
+    }
+
+    function updateAsset() {
+        const token = localStorage.getItem('token');
+        const data = {
+            title: document.getElementById('title').value,
+            category: document.getElementById('category').value,
+            description: document.getElementById('description').value,
+        };
+
+        fetch(`/api/assets/${assetId}/`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Asset updated successfully!');
+                window.location.href = '/dashboard/';
+            } else {
+                alert('Error updating asset.');
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    document.addEventListener('DOMContentLoaded', loadAsset);
+</script>
+{% endblock %}
